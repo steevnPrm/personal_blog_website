@@ -4,7 +4,8 @@ project: personal blog web site
 module: infrastructure
 type: portfolio
 status: draft
--------------
+
+---
 
 # SPÉCIFICATION INFRASTRUCTURE — POSTGRESQL LOCAL DOCKER
 
@@ -14,7 +15,9 @@ status: draft
 
 Cette infrastructure fournit un environnement de développement local basé sur Docker pour l’API backend du portfolio.
 
-Elle contient un seul service : PostgreSQL.
+Elle contient un service principal : PostgreSQL.
+
+Elle est conçue pour être utilisée en local ainsi qu’en environnement de CI.
 
 ---
 
@@ -75,6 +78,8 @@ environment:
   POSTGRES_DB: ${DB_NAME}
 ```
 
+⚠️ Ces variables doivent être synchronisées avec les configurations Spring Boot (profil `local`) et la CI GitHub Actions (profil `ci`).
+
 ---
 
 # 6. RÉSEAU
@@ -132,28 +137,41 @@ healthcheck:
 
 ---
 
-# 10. COMPORTEMENT GLOBAL
+# 10. USAGE CI/CD
+
+Cette infrastructure peut être réutilisée en environnement CI avec une configuration équivalente :
+
+* service PostgreSQL Docker dans GitHub Actions
+* variables d’environnement injectées dans le job CI
+* même schéma de base de données que l’environnement local
+
+Objectif : assurer une parité entre local et CI.
+
+---
+
+# 11. COMPORTEMENT GLOBAL
 
 * Un seul conteneur PostgreSQL est exécuté en local
 * Les données sont persistées sur l’hôte via `.docker/db_data`
 * La configuration est externalisée via `.env`
 * Le service est isolé dans un réseau Docker dédié (`backend`)
 * PostgreSQL est exposé sur la machine hôte
+* Compatible exécution CI via service Docker équivalent
 
 ---
 
-# 11. HORS PÉRIMÈTRE
+# 12. HORS PÉRIMÈTRE
 
 Cette infrastructure ne couvre pas :
 
 * API backend (Spring Boot)
 * Reverse proxy
-* Pipeline CI/CD
+* Pipeline CI/CD (défini dans GitHub Actions)
 * Services supplémentaires (Redis, cache, broker de messages)
 * Environnement de production
 
 ---
 
-# 12. OBJECTIF
+# 13. OBJECTIF
 
-Fournir un environnement minimal, reproductible et isolé permettant d’exécuter PostgreSQL en local via Docker dans un contexte de développement backend.
+Fournir un environnement minimal, reproductible et isolé permettant d’exécuter PostgreSQL en local via Docker dans un contexte de développement backend, avec compatibilité CI pour garantir la cohérence des tests.
