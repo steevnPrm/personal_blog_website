@@ -1,0 +1,57 @@
+# =========================
+# Java / Spring Boot
+# =========================
+/api/target/
+*.class
+*.log
+
+# Maven
+/api/.mvn/
+/api/mvnw
+/api/mvnw.cmd
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Environment variables
+# =========================
+.env
+*.env
+!.env.example
+
+# =========================
+# Docker
+# =========================
+.docker/
+**/db_data/
+**/postgres-data/
+**/pgdata/
+
+# Docker overrides
+docker-compose.override.yml
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs / runtime
+# =========================
+logs/
+*.pid
+
+# =========================
+# Misc
+# =========================
+*.tmp
+*.bak
+
+# infrastructure runtime data
+/infrastructure/.data/
