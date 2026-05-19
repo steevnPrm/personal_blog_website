@@ -51,3 +51,4 @@ jobs:
 
       - name: Build & Run tests
         run: mvn clean verify
+        working-directory: api
