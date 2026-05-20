@@ -50,5 +50,10 @@ jobs:
           done
 
       - name: Build & Run tests
+        env:
+            JWT_SECRET: ${{ secrets.JWT_SECRET }}
+            JWT_DURATION: ${{ secrets.JWT_DURATION }}
+            ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+            ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: mvn clean verify
         working-directory: api
