@@ -17,7 +17,6 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // Injection de la propriété avec une sécurité de secours si tout est vide
     @Value("${jwt.secret}")
     private String secretKey;
 
