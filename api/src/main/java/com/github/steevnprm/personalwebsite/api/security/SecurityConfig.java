@@ -81,7 +81,7 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         return username -> org.springframework.security.core.userdetails.User
                 .withUsername(adminUsername)
-                .password(adminPassword) 
+                .password(passwordEncoder().encode(adminPassword))
                 .roles("ADMIN")
                 .build();
     }
