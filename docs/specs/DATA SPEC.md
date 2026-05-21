@@ -1,53 +1,44 @@
 ---
-aliases:
-project: personal blog web site
-type: portfolio
-scope: Data Structure
+
+aliases: []
+project: "personal blog web site"
+type: "portfolio"
+scope: "Data Structure"
 stack:
-  - Spring
+
+* Spring Boot
+* PostgreSQL
+  status: "specification"
+
 ---
+
+# DATA STRUCTURE SPECIFICATION
+
 ## 1. OBJECTIF
 
-Définir la structure de données minimale nécessaire au fonctionnement de l’application :
+Définir la structure de données persistante minimale nécessaire au fonctionnement du portfolio.
 
-- Authentification utilisateur
-- Gestion des études de cas
-- Gestion des sections de contenu
-- Respect des règles d’ownership
+Cette spécification couvre uniquement :
 
----
+* les entités persistées en base de données,
+* leurs relations,
+* les contraintes d’intégrité,
+* les règles de validation,
+* les comportements de persistance.
 
-# 2. ENTITÉS PRINCIPALES
-
-## 2.1 USER (Auth Module)
-
-Représente un utilisateur de l’application.
-
-```text
-User
-- id: UUID
-- email: String (unique)
-- password: String (hashed)
-- createdAt: Instant
-- updatedAt: Instant
-````
-
-### Contraintes
-
-* email unique
-* password stocké uniquement en hash (BCrypt)
-* id généré automatiquement (UUID)
+L’authentification et les droits d’administration étant gérés via configuration sécurisée applicative (variables d’environnement), aucune entité `User` persistante n’est requise.
 
 ---
 
-## 2.2 STUDY CASE
+# 2. ENTITÉS PERSISTANTES
 
-Représente une étude de cas créée par un utilisateur.
+## 2.1 STUDY CASE
+
+Représente une étude de cas ou un projet présenté sur le portfolio.
 
 ```text
 StudyCase
-- id: UUID
-- userId: UUID (FK → User)
+- id: UUID (Primary Key)
 - title: String
 - createdAt: Instant
 - updatedAt: Instant
@@ -55,87 +46,184 @@ StudyCase
 
 ### Contraintes
 
-* title: 3 à 120 caractères
-* ownership obligatoire (userId requis)
-* suppression liée à l’utilisateur propriétaire
+* `id`
+
+  * UUID v4 auto-généré
+
+* `title`
+
+  * obligatoire dès la création
+  * longueur valide comprise entre `3` et `120` caractères
+
+* `createdAt`
+
+  * généré automatiquement
+
+* `updatedAt`
+
+  * mis à jour automatiquement lors des modifications
 
 ---
 
-## 2.3 SECTION
+## 2.2 SECTION
 
-Représente une partie de contenu d’une étude de cas.
+Représente une section de contenu ordonnée appartenant à une étude de cas.
 
 ```text
 Section
-- id: UUID
-- studyCaseId: UUID (FK → StudyCase)
+- id: UUID (Primary Key)
+- studyCaseId: UUID (Foreign Key → StudyCase)
 - subtitle: String
 - content: Text
-- position: Integer (ordre d’affichage)
+- position: Integer
 - createdAt: Instant
 - updatedAt: Instant
 ```
 
 ### Contraintes
 
-* subtitle: 3 à 120 caractères
-* content: non vide
-* position utilisée pour ordonner les sections
+* `id`
+
+  * UUID v4 auto-généré
+
+* `studyCaseId`
+
+  * obligatoire
+  * référence valide vers `StudyCase`
+
+* `subtitle`
+
+  * obligatoire
+  * longueur comprise entre `3` et `120` caractères
+
+* `content`
+
+  * obligatoire
+  * non vide
+
+* `position`
+
+  * entier positif
+  * utilisé pour l’ordre d’affichage
+
+* `createdAt`
+
+  * généré automatiquement
+
+* `updatedAt`
+
+  * mis à jour automatiquement
 
 ---
 
-# 3. RELATIONS ENTRE ENTITÉS
+# 3. RELATIONS
 
 ```text
-User (1) ───── (N) StudyCase
-StudyCase (1) ───── (N) Section
+StudyCase (1) ───── (1) Section
+```
+
+## Cardinalités
+
+### StudyCase → Section
+
+* une `StudyCase` possède une unique `Section`
+
+### Section → StudyCase
+
+* une `Section` appartient obligatoirement à une unique `StudyCase`
+* la relation est directe et exclusive
+
+---
+
+# 4. INTÉGRITÉ DES DONNÉES
+
+## 4.1 Cascade de suppression
+
+La suppression d’une `StudyCase` entraîne automatiquement :
+
+* la suppression de la `Section` associée.
+
+---
+
+## 4.2 Interdiction d’orphelinage
+
+Une `Section` ne peut jamais exister :
+
+* sans `StudyCase`,
+* avec une clé étrangère invalide.
+
+---
+
+# 5. VALIDATION MÉTIER
+
+## StudyCase
+
+### title
+
+* obligatoire dès la création
+* entre `3` et `120` caractères
+
+---
+
+## Section
+
+### subtitle
+
+* obligatoire
+* entre `3` et `120` caractères
+
+### content
+
+* obligatoire
+* non vide
+
+### position
+
+* entier supérieur ou égal à `1`
+
+---
+
+# 6. MODÈLE LOGIQUE
+
+```text
+[PostgreSQL]
+
+study_cases
+    └── sections
 ```
 
 ---
 
-# 4. RÈGLES MÉTIER
+# 7. STRATÉGIE DE PERSISTANCE
 
-## 4.1 Ownership
+## Base de données
 
-* Un utilisateur ne peut accéder qu’à ses propres StudyCases
-* Un StudyCase ne peut contenir que ses propres Sections
+* PostgreSQL
 
----
+## Génération des identifiants
 
-## 4.2 Intégrité des données
+* UUID v4
 
-* Suppression d’un StudyCase → suppression des Sections associées (cascade)
-* Section toujours liée à un StudyCase valide
-* StudyCase toujours lié à un User valide
+## Gestion des dates
 
----
+* `Instant` (UTC)
 
-## 4.3 Validation métier
+## Ordonnancement
 
-### User
+L’ordre de rendu est déterminé :
 
-* email valide
-* password >= 8 caractères
-
-### StudyCase
-
-* title obligatoire
-* title entre 3 et 120 caractères
-
-### Section
-
-* subtitle obligatoire
-* content obligatoire
-* position optionnelle mais recommandée
+* par `position ASC`
+* utilisé pour l’assemblage séquentiel du contenu
 
 ---
 
-# 5. MODÈLE LOGIQUE (RÉSUMÉ)
+# 8. ARCHITECTURE DE DONNÉES
+
+La structure de persistance suit une relation directe :
 
 ```text
-User
-  └── StudyCase
-          └── Section
+StudyCase
+    └── Section
 ```
 
----
+Aucune gestion multi-utilisateur persistante n’est implémentée dans la base de données.
