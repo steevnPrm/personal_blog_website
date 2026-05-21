@@ -1,65 +1,64 @@
+# Personal Blog Web Site — Backend API
+
+## API v1 — Spécification Technique (Mono-Administrateur)
+
+* **Project**: personal blog web site
+* **Type**: portfolio
+* **API Version**: v1
+* **Domain**: backend-api
+* **Modules**:
+
+  * auth
+  * studycases
+* **Standards**:
+
+  * RFC 7231
+  * RFC 6750
+  * RFC 7807
+  * JWT
+  * REST
+  * JSON
+* **Status**: specification
+
 ---
-project: "personal blog web site"
-type: "portfolio"
-api_version: "v1"
-domain: "backend-api"
-modules: ["auth", "studycases"]
-standards: ["RFC7231", "RFC6750", "RFC7807", "JWT", "REST", "JSON"]
-status: "specification"
----
 
-# API v1
+# Standards globaux
 
-## Standards globaux
-
-| Standard | Usage |
-|---|---|
-| RFC 7231 | HTTP semantics |
-| RFC 6750 | Bearer token header |
-| RFC 7807 | Error format |
-| JWT | Stateless authentication |
-| REST | Resource-based API |
-| JSON | Data format |
+| Standard | Usage                         |
+| -------- | ----------------------------- |
+| RFC 7231 | HTTP Semantics                |
+| RFC 6750 | Bearer Token Header           |
+| RFC 7807 | Problem Details for HTTP APIs |
+| JWT      | Stateless Authentication      |
+| REST     | Resource-based API            |
+| JSON     | Data Serialization Format     |
 
 ---
 
 # AUTH SERVICE
 
-Base path: `/api/v1/auth`
+**Base path:** `/api/v1/auth`
 
-## Register
-
-POST `/register`
-
-### Request
-```json
-{
-  "email": "user@email.com",
-  "password": "StrongPassword123"
-}
-````
-
-### Response — 201 Created
-
-```json
-{
-  "userId": "d3b07384-d113-49cd-a5d6-8ee4fc1dc3c7",
-  "email": "user@email.com",
-  "createdAt": "2026-05-18T10:00:00Z"
-}
-```
+Pour un portfolio à administrateur unique, aucune inscription publique (`/register`) n'est implémentée.
+Le compte d'administration est configuré de manière sécurisée côté serveur via des variables d'environnement.
 
 ---
 
 ## Login
 
-POST `/login`
+Authentifie l'unique administrateur et génère un jeton d'accès à vie courte.
+
+### Endpoint
+
+```http
+POST /login
+```
 
 ### Request
 
 ```json
 {
-  "email": "user@email.com",
+  "username": "admin@test.com",
   "password": "StrongPassword123"
 }
 ```
@@ -68,33 +67,7 @@ POST `/login`
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresIn": 900
-}
-```
-
----
-
-## Refresh token
-
-POST `/refresh`
-
-### Request
-
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### Response — 200 OK
-
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresIn": 900
+  "accessToken": "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
@@ -102,20 +75,18 @@ POST `/refresh`
 
 ## Logout
 
-POST `/logout`
+Déconnecte l'administrateur en détruisant le contexte de sécurité immédiat.
+
+### Endpoint
+
+```http
+POST /logout
+```
 
 ### Headers
 
-```
+```http
 Authorization: Bearer <accessToken>
-```
-
-### Request
-
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
 ```
 
 ### Response — 200 OK
@@ -126,19 +97,61 @@ Authorization: Bearer <accessToken>
 }
 ```
 
+> **Note** : Le jeton JWT étant par nature stateless, le client front-end (Angular, Vue, etc.) doit impérativement détruire sa copie locale de l'accessToken lors de cette opération.
+
 ---
 
 # STUDY CASE SERVICE
 
-Base path: `/api/v1/studycases`
+**Base path:** `/api/v1/studycases`
+
+---
+
+## Get all study cases
+
+Récupère la liste de toutes les études de cas disponibles.
+
+### Endpoint
+
+```http
+GET /
+```
+
+### Access
+
+Public (Aucun token requis)
+
+### Response — 200 OK
+
+```json
+[
+  {
+    "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
+    "title": "Analyse fintech",
+    "createdAt": "2026-05-18T10:00:00Z"
+  }
+]
+```
+
+---
 
 ## Create study case
 
-POST `/`
+Initialise une nouvelle étude de cas vierge.
+
+### Endpoint
+
+```http
+POST /
+```
+
+### Access
+
+Restreint (Rôle ADMIN requis)
 
 ### Headers
 
-```
+```http
 Authorization: Bearer <accessToken>
 ```
 
@@ -146,18 +159,17 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "title": null 
+  "title": null
 }
 ```
 
-_Note : Conformément aux règles métier, le titre peut être initialisé plus tard ou fourni vide à la création._
+> **Note** : Conformément aux règles métier, le titre peut être initialisé plus tard ou fourni vide lors de la création initiale.
 
 ### Response — 201 Created
 
 ```json
 {
   "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
-  "userId": "d3b07384-d113-49cd-a5d6-8ee4fc1dc3c7",
   "title": null,
   "createdAt": "2026-05-18T10:00:00Z"
 }
@@ -167,20 +179,23 @@ _Note : Conformément aux règles métier, le titre peut être initialisé plus 
 
 ## Get study case by ID
 
-GET `/{studyCaseId}`
+Récupère les détails complets d'une étude de cas spécifique.
 
-### Headers
+### Endpoint
 
+```http
+GET /{studyCaseId}
 ```
-Authorization: Bearer <accessToken>
-```
+
+### Access
+
+Public (Aucun token requis)
 
 ### Response — 200 OK
 
 ```json
 {
   "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
-  "userId": "d3b07384-d113-49cd-a5d6-8ee4fc1dc3c7",
   "title": "Analyse fintech",
   "createdAt": "2026-05-18T10:00:00Z",
   "sections": []
@@ -191,11 +206,22 @@ Authorization: Bearer <accessToken>
 
 ## Set title (Single Use)
 
-POST `/{studyCaseId}/title`
+Définit de manière permanente le titre d'une étude de cas.
+Ne peut être appelé qu'une seule fois.
+
+### Endpoint
+
+```http
+POST /{studyCaseId}/title
+```
+
+### Access
+
+Restreint (Rôle ADMIN requis)
 
 ### Headers
 
-```
+```http
 Authorization: Bearer <accessToken>
 ```
 
@@ -217,19 +243,25 @@ Authorization: Bearer <accessToken>
 }
 ```
 
-_Note : Si le titre est déjà défini pour cette StudyCase, cet endpoint retourne une erreur `409 Conflict` (voir format RFC 7807)._
-
 ---
 
 ## Add section
 
-POST `/{studyCaseId}/sections`
+Ajoute une section de contenu textuel ordonnée à une étude de cas.
+
+### Endpoint
+
+```http
+POST /{studyCaseId}/sections
+```
+
+### Access
+
+Restreint (Rôle ADMIN requis)
 
 ### Headers
 
-HTTP
-
-```
+```http
 Authorization: Bearer <accessToken>
 ```
 
@@ -259,17 +291,19 @@ Authorization: Bearer <accessToken>
 
 # RFC 7807 — ERROR FORMAT (GLOBAL)
 
-### Content-Type
+Toutes les erreurs de l'API doivent utiliser le type de contenu standardisé suivant :
 
-```
+```http
 Content-Type: application/problem+json
 ```
 
-### Exemple : Erreur de Validation (400)
+---
+
+## Exemple : Erreur de Validation (400)
 
 ```json
 {
-  "type": "[https://api.example.com/problems/validation-error](https://api.example.com/problems/validation-error)",
+  "type": "https://api.example.com/problems/validation-error",
   "title": "Validation Error",
   "status": 400,
   "detail": "Title must be between 3 and 120 characters.",
@@ -277,11 +311,29 @@ Content-Type: application/problem+json
 }
 ```
 
-### Exemple : Titre Déjà Défini (409)
+---
+
+## Exemple : Accès Refusé / Non Autorisé (403)
 
 ```json
 {
-  "type": "[https://api.example.com/problems/conflict](https://api.example.com/problems/conflict)",
+  "type": "https://api.example.com/problems/forbidden",
+  "title": "Forbidden",
+  "status": 403,
+  "detail": "Full authentication is required to access this resource.",
+  "instance": "/api/v1/studycases"
+}
+```
+
+---
+
+## Exemple : Conflit de titre (409)
+
+Retourné si le titre a déjà été assigné une fois et qu'un utilisateur tente de le modifier à nouveau.
+
+```json
+{
+  "type": "https://api.example.com/problems/conflict",
   "title": "Conflict",
   "status": 409,
   "detail": "The title for this StudyCase has already been set and cannot be modified.",
@@ -291,35 +343,22 @@ Content-Type: application/problem+json
 
 ---
 
-# CONTRAINTES
+# CONTRAINTES TECHNIQUES
 
-- JWT obligatoire pour toutes les routes `/api/v1/studycases/`.
-    
-- Password d'un utilisateur : minimum 8 caractères.
-    
-- UUID obligatoire pour toutes les ressources (`User`, `StudyCase`, `Section`).
-    
-- Rotation du Refresh token obligatoire lors de l'appel au rafraîchissement.
-    
-- HTTPS obligatoire partout.
-    
-- Ownership check systématique (`userId` du contexte de sécurité $\leftrightarrow$ ressource demandée) : renvoie `403` ou `404`.
-    
+* Authentification par en-tête : utilisation exclusive du format RFC 6750 (`Authorization: Bearer <accessToken>`).
+* UUID obligatoires : tous les identifiants générés (`StudyCase`, `Section`) doivent utiliser UUID v4.
+* HTTPS obligatoire sur les environnements de staging, pré-production et production.
+* Sécurisation par autorisations : distinction lecture / écriture configurée au niveau de la chaîne de filtres Spring Security.
+* Architecture stateless sans stockage de session côté serveur.
 
 ---
 
 # DoD (Definition of Done)
 
-- Authentification Stateless JWT entièrement fonctionnelle.
-    
-- Rotation du Refresh token validée.
-    
-- Middleware de sécurité (`JwtAuthenticationFilter`) en place.
-    
-- CRUD et endpoints annexes de `StudyCase` entièrement sécurisés par propriété.
-    
-- Modèle d'erreur RFC 7807 appliqué sur l'ensemble des exceptions de l'API.
-    
-- Tests unitaires et tests d'intégration au statut "Pass".
-    
-- API versionnée correctement sous le préfixe `/v1`.
+* [x] Initialisation de la chaîne de filtres Spring Security fonctionnelle et stateless.
+* [x] Middleware d'interception et de validation JWT (`JwtAuthFilter`) opérationnel et débloqué des références circulaires.
+* [x] Détection automatique du plus haut niveau de cryptage JWT selon la longueur de `JWT_SECRET`.
+* [x] Extraction de l'unique compte administrateur hors du code source via variables d'environnement et BCrypt.
+* [ ] Modèle d'erreur RFC 7807 appliqué de manière centralisée via `@ControllerAdvice`.
+* [ ] Tests unitaires et tests d'intégration au statut `PASS`.
+* [x] Exposition versionnée de l'API sous le préfixe global `/api/v1`.
