@@ -1,23 +1,23 @@
 package com.github.steevnprm.personalwebsite.api.section;
 
-import java.time.Instant;
-import java.util.UUID;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import com.github.steevnprm.personalwebsite.api.studycase.StudyCaseEntity;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor 
 @Entity
 @Table(name = "sections")
 @EntityListeners(AuditingEntityListener.class)
@@ -50,22 +50,4 @@ public class SectionEntity {
 
     @LastModifiedDate
     private Instant updatedAt;
-
-    // Constructeurs
-    public SectionEntity() {}
-
-    // Getters et Setters
-    public UUID getId() { return id; }
-    
-    public StudyCaseEntity getStudyCase() { return studyCase; }
-    public void setStudyCase(StudyCaseEntity studyCase) { this.studyCase = studyCase; }
-
-    public String getSubtitle() { return subtitle; }
-    public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
 }
