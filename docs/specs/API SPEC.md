@@ -42,6 +42,8 @@
 Pour un portfolio à administrateur unique, aucune inscription publique (`/register`) n'est implémentée.
 Le compte d'administration est configuré de manière sécurisée côté serveur via des variables d'environnement.
 
+Aucune notion d'ownership métier n'est implémentée : les accès sont contrôlés uniquement par authentification et rôle.
+
 ---
 
 ## Login
@@ -75,7 +77,7 @@ POST /login
 
 ## Logout
 
-Déconnecte l'administrateur en détruisant le contexte de sécurité immédiat.
+Déconnecte l'administrateur en détruisant le contexte de sécurité de la requête courante.
 
 ### Endpoint
 
@@ -137,7 +139,7 @@ Public (Aucun token requis)
 
 ## Create study case
 
-Initialise une nouvelle étude de cas vierge.
+Crée une nouvelle étude de cas.
 
 ### Endpoint
 
@@ -159,21 +161,32 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "title": null
+  "title": "Analyse fintech"
 }
 ```
 
-> **Note** : Conformément aux règles métier, le titre peut être initialisé plus tard ou fourni vide lors de la création initiale.
+### Validation Rules
+
+* `title` obligatoire
+* Longueur minimale : 3 caractères
+* Longueur maximale : 120 caractères
+* Les espaces en début et fin de chaîne doivent être ignorés côté serveur
 
 ### Response — 201 Created
 
+````json
+{
+  "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
+  "title": "Analyse fintech",
+  "createdAt": "2026-05-18T10:00:00Z"
+}
 ```json
 {
   "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
   "title": null,
   "createdAt": "2026-05-18T10:00:00Z"
 }
-```
+````
 
 ---
 
@@ -202,52 +215,15 @@ Public (Aucun token requis)
 }
 ```
 
----
-
-## Set title (Single Use)
-
-Définit de manière permanente le titre d'une étude de cas.
-Ne peut être appelé qu'une seule fois.
-
-### Endpoint
-
-```http
-POST /{studyCaseId}/title
-```
-
-### Access
-
-Restreint (Rôle ADMIN requis)
-
-### Headers
-
-```http
-Authorization: Bearer <accessToken>
-```
-
-### Request
-
-```json
-{
-  "title": "Analyse fintech"
-}
-```
-
-### Response — 200 OK
-
-```json
-{
-  "id": "a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a",
-  "title": "Analyse fintech",
-  "updatedAt": "2026-05-18T10:02:00Z"
-}
-```
+> **Note** : Les sections associées à la StudyCase sont assemblées dynamiquement côté serveur puis triées par `position ASC` avant retour au client.
 
 ---
 
 ## Add section
 
 Ajoute une section de contenu textuel ordonnée à une étude de cas.
+
+La position est calculée automatiquement côté serveur selon l'ordre actuel des sections existantes.
 
 ### Endpoint
 
@@ -301,6 +277,14 @@ Content-Type: application/problem+json
 
 ## Exemple : Erreur de Validation (400)
 
+````json
+{
+  "type": "https://api.example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 400,
+  "detail": "Title is required and must be between 3 and 120 characters.",
+  "instance": "/api/v1/studycases"
+}
 ```json
 {
   "type": "https://api.example.com/problems/validation-error",
@@ -309,7 +293,7 @@ Content-Type: application/problem+json
   "detail": "Title must be between 3 and 120 characters.",
   "instance": "/api/v1/studycases/a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a/title"
 }
-```
+````
 
 ---
 
@@ -327,20 +311,6 @@ Content-Type: application/problem+json
 
 ---
 
-## Exemple : Conflit de titre (409)
-
-Retourné si le titre a déjà été assigné une fois et qu'un utilisateur tente de le modifier à nouveau.
-
-```json
-{
-  "type": "https://api.example.com/problems/conflict",
-  "title": "Conflict",
-  "status": 409,
-  "detail": "The title for this StudyCase has already been set and cannot be modified.",
-  "instance": "/api/v1/studycases/a9f8b7c6-e5d4-4c3b-b2a1-0f9e8d7c6b5a/title"
-}
-```
-
 ---
 
 # CONTRAINTES TECHNIQUES
@@ -348,7 +318,7 @@ Retourné si le titre a déjà été assigné une fois et qu'un utilisateur tent
 * Authentification par en-tête : utilisation exclusive du format RFC 6750 (`Authorization: Bearer <accessToken>`).
 * UUID obligatoires : tous les identifiants générés (`StudyCase`, `Section`) doivent utiliser UUID v4.
 * HTTPS obligatoire sur les environnements de staging, pré-production et production.
-* Sécurisation par autorisations : distinction lecture / écriture configurée au niveau de la chaîne de filtres Spring Security.
+* Sécurisation par autorisations : accès basé uniquement sur l'authentification et le rôle `ADMIN` pour les opérations d'écriture.
 * Architecture stateless sans stockage de session côté serveur.
 
 ---
