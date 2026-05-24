@@ -1,12 +1,14 @@
 package com.github.steevnprm.personalwebsite.api.section;
 
-
+import com.github.steevnprm.personalwebsite.api.exception.BusinessException; // Import ajouté
+import com.github.steevnprm.personalwebsite.api.exception.ErrorCode;         // Import ajouté
 import com.github.steevnprm.personalwebsite.api.studycase.StudyCaseEntity;
 import com.github.steevnprm.personalwebsite.api.studycase.StudyCaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map; 
 import java.util.UUID;
 
 @Service
@@ -20,7 +22,10 @@ public class SectionService {
     public SectionResponse addSection(UUID studyCaseId, SectionCreateRequest request) {
 
         StudyCaseEntity studyCase = studyCaseRepository.findById(studyCaseId)
-                .orElseThrow(() -> new IllegalArgumentException("Étude de cas introuvable"));
+                .orElseThrow(() -> new BusinessException(
+                    ErrorCode.STUDYCASE_NOT_FOUND, 
+                    Map.of("studyCaseId", studyCaseId)
+                ));
 
         int newPosition = sectionRepository.countByStudyCaseId(studyCaseId) + 1;
 
