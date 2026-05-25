@@ -57,3 +57,25 @@ jobs:
             ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: mvn clean verify
         working-directory: api
+
+  publish:
+    needs: build-and-test 
+    if: github.ref == 'refs/heads/main' 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
