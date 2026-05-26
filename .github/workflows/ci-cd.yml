@@ -28,7 +28,10 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: ./mvnw clean package -DskipTests
+        working-directory: ./api
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
