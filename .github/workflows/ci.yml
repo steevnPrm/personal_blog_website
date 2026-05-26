@@ -60,6 +60,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug Environment Variables
+        run: |
+          echo "--- Débogage des secrets ---"
+          echo "URL est vide: ${{ secrets.SPRING_DATASOURCE_URL == '' }}"
+          echo "User est vide: ${{ secrets.SPRING_DATASOURCE_USERNAME == '' }}"
+          echo "----------------------------"
           
       - name: Build and Push
         uses: docker/build-push-action@v5
