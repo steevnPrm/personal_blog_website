@@ -71,16 +71,15 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
-          context: ./api 
+          context: ./api
           file: ./api/Dockerfile
           push: true
-          no-cache: true
           build-args: |
-            SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
-            SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
-            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-            APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}
-            APP_JWT_EXPIRATION=${{ secrets.APP_JWT_EXPIRATION }}
-            APP_ADMIN_USERNAME=${{ secrets.APP_ADMIN_USERNAME }}
-            APP_ADMIN_PASSWORD=${{ secrets.APP_ADMIN_PASSWORD }}
+            SPRING_DATASOURCE_URL=jdbc:postgresql://ep-mute-mountain-al6n3teo.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require
+            SPRING_DATASOURCE_USERNAME=neondb_owner
+            SPRING_DATASOURCE_PASSWORD=npg_HtPsvGN29Bud
+            APP_JWT_SECRET=Mjg4ZDBmNjE0Y2M2YzVjOGJlYTM4M2VjOTU1YmI3MmQ3Yzg0NTg5NWRlNTg3MWUwOTg0M2M1Y2I4ZDYwMmEzYw==
+            APP_JWT_EXPIRATION=86400
+            APP_ADMIN_USERNAME=admin_secure_prod
+            APP_ADMIN_PASSWORD=A9x$kL2m!vP9_zQW4r*sT7b
           tags: ghcr.io/${{ steps.vars.outputs.repo_name }}:latest
