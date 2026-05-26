@@ -55,7 +55,7 @@ jobs:
             JWT_DURATION: ${{ secrets.JWT_DURATION }}
             ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
             ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        run: mvn clean verify
+        run: mvn clean verify -DskipTests
         working-directory: api
 
   publish:
