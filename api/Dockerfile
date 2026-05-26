@@ -25,6 +25,9 @@ ENV APP_ADMIN_PASSWORD=$APP_ADMIN_PASSWORD
 
 COPY --from=build /app/target/*.jar app.jar
 
+# Ajout d'une étape de débogage dans le Dockerfile
+RUN echo "Vérification des variables :" && env | grep SPRING_
+
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java -Dspring.datasource.url=$SPRING_DATASOURCE_URL \
      -Dspring.datasource.username=$SPRING_DATASOURCE_USERNAME \
