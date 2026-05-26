@@ -26,4 +26,11 @@ ENV APP_ADMIN_PASSWORD=$APP_ADMIN_PASSWORD
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dspring.datasource.url=$SPRING_DATASOURCE_URL \
+     -Dspring.datasource.username=$SPRING_DATASOURCE_USERNAME \
+     -Dspring.datasource.password=$SPRING_DATASOURCE_PASSWORD \
+     -Djwt.secret=$APP_JWT_SECRET \
+     -Djwt.cookieExpiry=$APP_JWT_EXPIRATION \
+     -Dapp.admin.username=$APP_ADMIN_USERNAME \
+     -Dapp.admin.password=$APP_ADMIN_PASSWORD \
+     -jar app.jar"]
