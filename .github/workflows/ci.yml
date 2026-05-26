@@ -25,12 +25,6 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-    env:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/app_db
-      SPRING_DATASOURCE_USERNAME: app_user
-      SPRING_DATASOURCE_PASSWORD: app_password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,19 +36,7 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U app_user; do
-            echo "Waiting for postgres..."
-            sleep 2
-          done
-
       - name: Build & Run tests
-        env:
-            JWT_SECRET: ${{ secrets.JWT_SECRET }}
-            JWT_DURATION: ${{ secrets.JWT_DURATION }}
-            ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-            ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: mvn clean verify -DskipTests
         working-directory: api
 
@@ -84,4 +66,13 @@ jobs:
         with:
           context: ./api
           push: true
+
+          build-args: |
+            SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}
+            APP_JWT_EXPIRATION=${{ secrets.APP_JWT_EXPIRATION }}
+            APP_ADMIN_USERNAME=${{ secrets.APP_ADMIN_USERNAME }}
+            APP_ADMIN_PASSWORD=${{ secrets.APP_ADMIN_PASSWORD }}
           tags: ghcr.io/${{ steps.vars.outputs.repo_name }}:latest
